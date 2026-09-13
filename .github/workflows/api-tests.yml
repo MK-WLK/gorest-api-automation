@@ -1,0 +1,41 @@
+name: API Tests
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run CRUD lifecycle tests
+        env:
+          GOREST_TOKEN: ${{ secrets.GOREST_TOKEN }}
+        run: |
+          newman run collection.json \
+            -d test-users.csv \
+            --env-var "access_token=$GOREST_TOKEN" \
+            --folder "CRUD Lifecycle"
+
+      - name: Run negative tests
+        env:
+          GOREST_TOKEN: ${{ secrets.GOREST_TOKEN }}
+        run: |
+          newman run collection.json \
+            --env-var "access_token=$GOREST_TOKEN" \
+            --folder "Negative Tests"
